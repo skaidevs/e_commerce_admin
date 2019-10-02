@@ -18,4 +18,12 @@ class BrandService {
       return snaps.documents;
     });
   }
+
+  Future<List<DocumentSnapshot>> getSuggestion(String suggestion) => _firestore
+          .collection(ref)
+          .where('brand', isEqualTo: suggestion)
+          .getDocuments()
+          .then((snap) {
+        return snap.documents;
+      });
 }

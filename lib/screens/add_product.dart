@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_commerce_admin/db/category.dart';
 import 'package:e_commerce_admin/db/brand.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:flutter_typeahead/cupertino_flutter_typeahead.dart';
 
 class AddProduct extends StatefulWidget {
   @override
@@ -24,7 +26,7 @@ class _AddProductState extends State<AddProduct> {
       <DropdownMenuItem<String>>[];
   List<DropdownMenuItem<String>> brandsDropDown = <DropdownMenuItem<String>>[];
 
-  String _currentCategory = "test";
+  String _currentCategory;
   String _currentBrand;
 
   @override
@@ -32,9 +34,6 @@ class _AddProductState extends State<AddProduct> {
     _getCategories();
 //    _getBrands();
     categoriesDropDown = getCategoriesDropDown();
-    if (_currentCategory.isEmpty) {
-      _currentCategory = categoriesDropDown[0].value;
-    }
   }
 
   List<DropdownMenuItem<String>> getCategoriesDropDown() {
@@ -69,7 +68,7 @@ class _AddProductState extends State<AddProduct> {
       ),
       body: Form(
         key: _formKey,
-        child: Column(
+        child: ListView(
           children: <Widget>[
             Row(
               children: <Widget>[
@@ -153,23 +152,130 @@ class _AddProductState extends State<AddProduct> {
                 },
               ),
             ),
-            Expanded(
-              child: ListView.builder(
-                  itemCount: categories.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      title: Text(categories[index]['category']),
-                    );
-                  }),
+            //select category
+            Visibility(
+              visible: _currentCategory != null,
+              child: InkWell(
+                child: Material(
+                  borderRadius: BorderRadius.circular(20.0),
+                  color: red,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Text(
+                            _currentCategory ?? 'null',
+                            style: TextStyle(color: white),
+                          ),
+                        ),
+                        IconButton(
+                            icon: Icon(
+                              Icons.close,
+                              color: white,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _currentCategory = '';
+                              });
+                            }),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TypeAheadField(
+                textFieldConfiguration: TextFieldConfiguration(
+                  autofocus: false,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'add category',
+                  ),
+                ),
+                suggestionsCallback: (pattern) async {
+                  return await _categoryService.getSuggestion(pattern);
+                },
+                itemBuilder: (context, suggestion) {
+                  return ListTile(
+                    leading: Icon(Icons.category),
+                    title: Text(suggestion['category']),
+                  );
+                },
+                onSuggestionSelected: (suggestion) {
+                  setState(() {
+                    _currentCategory = suggestion['category'];
+                  });
 
-//            Center(
-//              child: DropdownButton(
-//                items: categoriesDropDown,
-//                onChanged: changeSelectCategory,
-//                value: _currentCategory,
-//              ),
-//            ),
+//                Navigator.of(context).push(MaterialPageRoute(
+//                    builder: (context) => ProductPage(product: suggestion),));
+                },
+              ),
+            ),
+            //select brand
+            Visibility(
+              visible: _currentBrand != null,
+              child: InkWell(
+                child: Material(
+                  borderRadius: BorderRadius.circular(20.0),
+                  color: red,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Text(
+                            _currentBrand ?? 'null',
+                            style: TextStyle(color: white),
+                          ),
+                        ),
+                        IconButton(
+                            icon: Icon(
+                              Icons.close,
+                              color: white,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _currentBrand = '';
+                              });
+                            }),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TypeAheadField(
+                textFieldConfiguration: TextFieldConfiguration(
+                  autofocus: false,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'add brand',
+                  ),
+                ),
+                suggestionsCallback: (pattern) async {
+                  return await _brandService.getSuggestion(pattern);
+                },
+                itemBuilder: (context, suggestion) {
+                  return ListTile(
+                    leading: Icon(Icons.category),
+                    title: Text(suggestion['brand']),
+                  );
+                },
+                onSuggestionSelected: (suggestion) {
+                  setState(() {
+                    _currentBrand = suggestion['brand'];
+                  });
+
+//                Navigator.of(context).push(MaterialPageRoute(
+//                    builder: (context) => ProductPage(product: suggestion),));
+                },
+              ),
+            ),
           ],
         ),
       ),
