@@ -1,5 +1,8 @@
+import 'package:e_commerce_admin/screens/add_product.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:e_commerce_admin/db/brand.dart';
+import 'package:e_commerce_admin/db/category.dart';
 
 enum Page { dashboard, manage }
 
@@ -16,8 +19,8 @@ class _AdminState extends State<Admin> {
   TextEditingController brandController = TextEditingController();
   GlobalKey<FormState> _categoryFormKey = GlobalKey();
   GlobalKey<FormState> _brandFormKey = GlobalKey();
-//  BrandService _brandService = BrandService();
-//  CategoryService _categoryService = CategoryService();
+  BrandService _brandService = BrandService();
+  CategoryService _categoryService = CategoryService();
 
   @override
   Widget build(BuildContext context) {
@@ -187,7 +190,14 @@ class _AdminState extends State<Admin> {
             ListTile(
               leading: Icon(Icons.add),
               title: Text("Add product"),
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AddProduct(),
+                  ),
+                );
+              },
             ),
             Divider(),
             ListTile(
@@ -221,7 +231,9 @@ class _AdminState extends State<Admin> {
             ListTile(
               leading: Icon(Icons.library_books),
               title: Text("brand list"),
-              onTap: () {},
+              onTap: () {
+                _brandService.getBrands();
+              },
             ),
             Divider(),
           ],
@@ -252,7 +264,7 @@ class _AdminState extends State<Admin> {
         FlatButton(
             onPressed: () {
               if (categoryController.text != null) {
-//                _categoryService.createCategory(categoryController.text);
+                _categoryService.createCategory(categoryController.text);
               }
               Fluttertoast.showToast(msg: 'category created');
               Navigator.pop(context);
@@ -289,7 +301,7 @@ class _AdminState extends State<Admin> {
         FlatButton(
             onPressed: () {
               if (brandController.text != null) {
-//                _brandService.createBrand(brandController.text);
+                _brandService.createBrand(brandController.text);
               }
               Fluttertoast.showToast(msg: 'brand added');
               Navigator.pop(context);
