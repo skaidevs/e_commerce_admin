@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_commerce_admin/db/category.dart';
 import 'package:e_commerce_admin/db/brand.dart';
-import 'package:flutter_typeahead/flutter_typeahead.dart';
-import 'package:flutter_typeahead/cupertino_flutter_typeahead.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:path/path.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class AddProduct extends StatefulWidget {
   @override
@@ -21,12 +25,17 @@ class _AddProductState extends State<AddProduct> {
   BrandService _brandService = BrandService();
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   TextEditingController productNameController = TextEditingController();
+  TextEditingController quantityController = TextEditingController();
+
   List<DocumentSnapshot> brands = <DocumentSnapshot>[];
   List<DocumentSnapshot> categories = <DocumentSnapshot>[];
   List<DropdownMenuItem<String>> categoriesDropDown =
       <DropdownMenuItem<String>>[];
   List<DropdownMenuItem<String>> brandsDropDown = <DropdownMenuItem<String>>[];
   List<String> selectedSizes = <String>[];
+  File _image1;
+  File _image2;
+  File _image3;
 
   String _currentCategory;
   String _currentBrand;
@@ -94,7 +103,7 @@ class _AddProductState extends State<AddProduct> {
       ),
       body: Form(
         key: _formKey,
-        child: Column(
+        child: ListView(
           children: <Widget>[
             Row(
               children: <Widget>[
@@ -102,17 +111,15 @@ class _AddProductState extends State<AddProduct> {
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: OutlineButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        _selectImage(
+                          ImagePicker.pickImage(source: ImageSource.gallery),
+                          1,
+                        );
+                      },
                       borderSide:
                           BorderSide(color: grey.withOpacity(0.8), width: 1.0),
-                      child: Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(14.0, 60.0, 14.0, 60.0),
-                        child: Icon(
-                          Icons.add,
-                          color: grey,
-                        ),
-                      ),
+                      child: _displayChild1(),
                     ),
                   ),
                 ),
@@ -120,17 +127,15 @@ class _AddProductState extends State<AddProduct> {
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: OutlineButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        _selectImage(
+                          ImagePicker.pickImage(source: ImageSource.gallery),
+                          2,
+                        );
+                      },
                       borderSide:
                           BorderSide(color: grey.withOpacity(0.8), width: 1.0),
-                      child: Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(14.0, 60.0, 14.0, 60.0),
-                        child: Icon(
-                          Icons.add,
-                          color: grey,
-                        ),
-                      ),
+                      child: _displayChild2(),
                     ),
                   ),
                 ),
@@ -138,17 +143,15 @@ class _AddProductState extends State<AddProduct> {
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: OutlineButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        _selectImage(
+                          ImagePicker.pickImage(source: ImageSource.gallery),
+                          3,
+                        );
+                      },
                       borderSide:
                           BorderSide(color: grey.withOpacity(0.8), width: 1.0),
-                      child: Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(14.0, 60.0, 14.0, 60.0),
-                        child: Icon(
-                          Icons.add,
-                          color: grey,
-                        ),
-                      ),
+                      child: _displayChild3(),
                     ),
                   ),
                 ),
@@ -216,7 +219,7 @@ class _AddProductState extends State<AddProduct> {
             Padding(
               padding: const EdgeInsets.all(12.0),
               child: TextFormField(
-                controller: productNameController,
+                controller: quantityController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(hintText: 'Quantity'),
                 validator: (value) {
@@ -227,65 +230,122 @@ class _AddProductState extends State<AddProduct> {
                 },
               ),
             ),
-            Text('Available Sizes'),
+            Center(child: Text('Available Sizes')),
             Row(
               children: <Widget>[
                 Checkbox(
                   value: selectedSizes.contains('XS'),
+                  onChanged: (value) => changeSelectedSize('XS'),
                 ),
                 Text('XS'),
-                Checkbox(value: false, onChanged: null),
+                Checkbox(
+                  value: selectedSizes.contains('S'),
+                  onChanged: (value) => changeSelectedSize('S'),
+                ),
                 Text('S'),
-                Checkbox(value: false, onChanged: null),
+                Checkbox(
+                  value: selectedSizes.contains('M'),
+                  onChanged: (value) => changeSelectedSize('M'),
+                ),
                 Text('M'),
-                Checkbox(value: false, onChanged: null),
+                Checkbox(
+                  value: selectedSizes.contains('L'),
+                  onChanged: (value) => changeSelectedSize('L'),
+                ),
                 Text('L'),
-                Checkbox(value: false, onChanged: null),
+                Checkbox(
+                  value: selectedSizes.contains('XL'),
+                  onChanged: (value) => changeSelectedSize('XL'),
+                ),
                 Text('XL'),
-                Checkbox(value: false, onChanged: null),
+                Checkbox(
+                  value: selectedSizes.contains('XXL'),
+                  onChanged: (value) => changeSelectedSize('XXL'),
+                ),
                 Text('XXL'),
               ],
             ),
 
             Row(
               children: <Widget>[
-                Checkbox(value: false, onChanged: null),
+                Checkbox(
+                  value: selectedSizes.contains('28'),
+                  onChanged: (value) => changeSelectedSize('28'),
+                ),
                 Text('28'),
-                Checkbox(value: false, onChanged: null),
+                Checkbox(
+                  value: selectedSizes.contains('30'),
+                  onChanged: (value) => changeSelectedSize('30'),
+                ),
                 Text('30'),
-                Checkbox(value: false, onChanged: null),
+                Checkbox(
+                  value: selectedSizes.contains('32'),
+                  onChanged: (value) => changeSelectedSize('32'),
+                ),
                 Text('32'),
-                Checkbox(value: false, onChanged: null),
+                Checkbox(
+                  value: selectedSizes.contains('34'),
+                  onChanged: (value) => changeSelectedSize('34'),
+                ),
                 Text('34'),
-                Checkbox(value: false, onChanged: null),
+                Checkbox(
+                  value: selectedSizes.contains('36'),
+                  onChanged: (value) => changeSelectedSize('36'),
+                ),
                 Text('36'),
-                Checkbox(value: false, onChanged: null),
+                Checkbox(
+                  value: selectedSizes.contains('38'),
+                  onChanged: (value) => changeSelectedSize('38'),
+                ),
                 Text('38'),
               ],
             ),
 
             Row(
               children: <Widget>[
-                Checkbox(value: false, onChanged: null),
+                Checkbox(
+                  value: selectedSizes.contains('40'),
+                  onChanged: (value) => changeSelectedSize('40'),
+                ),
                 Text('40'),
-                Checkbox(value: false, onChanged: null),
+                Checkbox(
+                  value: selectedSizes.contains('42'),
+                  onChanged: (value) => changeSelectedSize('42'),
+                ),
                 Text('42'),
-                Checkbox(value: false, onChanged: null),
+                Checkbox(
+                  value: selectedSizes.contains('44'),
+                  onChanged: (value) => changeSelectedSize('44'),
+                ),
                 Text('44'),
-                Checkbox(value: false, onChanged: null),
+                Checkbox(
+                  value: selectedSizes.contains('46'),
+                  onChanged: (value) => changeSelectedSize('46'),
+                ),
                 Text('46'),
-                Checkbox(value: false, onChanged: null),
+                Checkbox(
+                  value: selectedSizes.contains('48'),
+                  onChanged: (value) => changeSelectedSize('48'),
+                ),
+                Text('48'),
+                Checkbox(
+                  value: selectedSizes.contains('50'),
+                  onChanged: (value) => changeSelectedSize('50'),
+                ),
                 Text('50'),
-                Checkbox(value: false, onChanged: null),
-                Text('51'),
               ],
             ),
 
-            FlatButton(
-              onPressed: () {},
-              child: Text('add product'),
-              textColor: white,
-              color: blue,
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: FlatButton(
+                onPressed: () {
+                  validateAndUpload();
+                },
+                child: Text('add product'),
+                textColor: white,
+                color: blue,
+              ),
             ),
           ],
         ),
@@ -319,11 +379,102 @@ class _AddProductState extends State<AddProduct> {
     setState(() => _currentBrand = selectedBrand);
   }
 
-  void changeSelectedSize(String size) {
+  changeSelectedSize(String size) {
     if (selectedSizes.contains(size)) {
-      selectedSizes.remove(size);
+      setState(() {
+        selectedSizes.remove(size);
+      });
     } else {
-      selectedSizes.add(size);
+      setState(() {
+        selectedSizes.insert(0, size);
+      });
+    }
+  }
+
+  //Get the file from the image picker and store it
+  void _selectImage(Future<File> pickImage, int imageNumber) async {
+    File tempImg = await pickImage;
+    switch (imageNumber) {
+      case 1:
+        setState(() => _image1 = tempImg);
+        break;
+      case 2:
+        setState(() => _image2 = tempImg);
+        break;
+      case 3:
+        setState(() => _image3 = tempImg);
+        break;
+    }
+  }
+
+  Widget _displayChild1() {
+    if (_image1 == null) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(14.0, 60.0, 14.0, 60.0),
+        child: Icon(
+          Icons.add,
+          color: grey,
+        ),
+      );
+    } else {
+      return Image.file(
+        _image1,
+        fit: BoxFit.fill,
+        width: double.infinity,
+      );
+    }
+  }
+
+  Widget _displayChild2() {
+    if (_image2 == null) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(14.0, 60.0, 14.0, 60.0),
+        child: Icon(
+          Icons.add,
+          color: grey,
+        ),
+      );
+    } else {
+      return Image.file(
+        _image2,
+        fit: BoxFit.fill,
+        width: double.infinity,
+      );
+    }
+  }
+
+  Widget _displayChild3() {
+    if (_image3 == null) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(14.0, 60.0, 14.0, 60.0),
+        child: Icon(
+          Icons.add,
+          color: grey,
+        ),
+      );
+    } else {
+      return Image.file(
+        _image3,
+        fit: BoxFit.fill,
+        width: double.infinity,
+      );
+    }
+  }
+
+  void validateAndUpload() {
+    if (_formKey.currentState.validate()) {
+      if (_image1 != null && _image2 != null && _image3 != null) {
+        if (selectedSizes.isNotEmpty) {
+          String imageUrl;
+          final String picture =
+              "${DateTime.now().millisecondsSinceEpoch.toString()}.jpg";
+          StorageUploadTask
+        } else {
+          Fluttertoast.showToast(msg: 'Select atleast one size');
+        }
+      } else {
+        Fluttertoast.showToast(msg: 'All the images must be provided');
+      }
     }
   }
 }
