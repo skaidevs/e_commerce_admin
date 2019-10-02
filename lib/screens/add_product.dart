@@ -468,7 +468,6 @@ class _AddProductState extends State<AddProduct> {
           String imageUrl;
           final String picture =
               "${DateTime.now().millisecondsSinceEpoch.toString()}.jpg";
-          StorageUploadTask
         } else {
           Fluttertoast.showToast(msg: 'Select atleast one size');
         }
