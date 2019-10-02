@@ -14,7 +14,6 @@ class BrandService {
 
   Future<List<DocumentSnapshot>> getBrands() {
     return _firestore.collection(ref).getDocuments().then((snaps) {
-      print(snaps.documents.length);
       return snaps.documents;
     });
   }
