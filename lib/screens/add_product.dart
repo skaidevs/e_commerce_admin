@@ -370,7 +370,7 @@ class _AddProductState extends State<AddProduct> {
                     padding: const EdgeInsets.all(20.0),
                     child: FlatButton(
                       onPressed: () async {
-                        validateAndUpload();
+                        validateAndUpload(context);
                       },
                       child: Text('add product'),
                       textColor: white,
@@ -383,7 +383,7 @@ class _AddProductState extends State<AddProduct> {
     );
   }
 
-  void validateAndUpload() async {
+  void validateAndUpload(BuildContext context) async {
     if (_formKey.currentState.validate()) {
       setState(() => isLoading = true);
       if (_image1 != null && _image2 != null && _image3 != null) {
@@ -421,10 +421,13 @@ class _AddProductState extends State<AddProduct> {
                 price: double.parse(priceController.text),
                 sizes: selectedSizes,
                 images: imageList,
+                brand: _currentBrand,
+                category: _currentCategory,
                 quantity: int.parse(quantityController.text));
             _formKey.currentState.reset();
             setState(() => isLoading = false);
             Fluttertoast.showToast(msg: 'Product added');
+            Navigator.pop(context);
           });
         } else {
           setState(() => isLoading = false);
